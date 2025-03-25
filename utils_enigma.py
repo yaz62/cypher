@@ -45,10 +45,14 @@ class Scrambler:
             self.input, self.output = input, output
         else:
             return input, output
+        
+    def print(self, n: int=0):
+        input, output = self.rotate(n)
+        print(f"{input}\n{output}")
 
 
 class Scramblers:
-    def __init__(self, input: str, output: str, *scramblers: Scrambler, init_key: str=None):
+    def __init__(self, *scramblers: Scrambler, init_key: str=None, input: str=ALPHABET, output: str=ALPHABET):
         self.input, self.output = input, output
         self.scramblers = scramblers
 
@@ -60,13 +64,13 @@ class Scramblers:
                 r = scramblers[i].input.index(k)
                 scramblers[i].rotate(-r, in_place=True)
 
-    def get_mappings(self, rot_num: int):
+    def get_mappings(self, rot_nums):
         # get rotated inputs and outputs
         inputs, outputs = [], []
-        for s in self.scramblers:
-            i, o = s.rotate(rot_num)
-            inputs.append(i)
-            outputs.append(o)
+        for i, s in enumerate(self.scramblers):
+            inp, out = s.rotate(rot_nums[i])
+            inputs.append(inp)
+            outputs.append(out)
 
         S = []
         S.append({k: v for k, v in zip(self.input, inputs[0])})
@@ -101,3 +105,14 @@ class Scramblers:
             x = S[x]
 
         return x
+    
+    def print(self, rot_num: int=0):
+        print_str = self.input + "\n\n"
+
+        for s in self.scramblers:
+            input, output = s.rotate(rot_num)
+            print_str += input + '\n' + output + '\n\n'
+        
+        print_str += self.output
+
+        print(print_str)
