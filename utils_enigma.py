@@ -23,6 +23,17 @@ def rotate_dict(map_dict, n):
     return dict(zip(keys, rotated_values))
 
 
+def rotate_scrambler(disc_dict, n, alphabet=ALPHABET):
+    rot_dict = {}
+
+    for k, v in disc_dict.items():
+        new_key = alphabet[(alphabet.index(k) + n) % len(alphabet)]
+        new_val = alphabet[(alphabet.index(v) + n) % len(alphabet)]
+        rot_dict[new_key] = new_val
+    
+    return rot_dict
+
+
 def rotate_string(s, n):
     """
         rotates a string by `n` positions.
@@ -31,7 +42,46 @@ def rotate_string(s, n):
     return s[-n:] + s[:-n]
 
 
-class Scrambler:
+def build_enigma_func(scramblers, reflector, swapper=None, init_key=None, rot_sgn=-1, alphabet=ALPHABET):
+    if init_key is not None:
+        # initial keys
+        I = [ALPHABET.index(k) for k in init_key]
+        scramblers_ = [rotate_scrambler(scramblers[j], int(rot_sgn*I[j])) for j in range(len(scramblers))]
+    else:
+        scramblers_ = scramblers
+
+    def enigma(c, i):
+        # apply swapper
+        if swapper is not None:
+            x = swapper[c]
+
+        # get rotated scramblers
+        r = [i + 1]
+        for j in range(1, len(scramblers_)):
+            r.append(r[j-1] // len(alphabet))
+
+        S = [rotate_scrambler(scramblers_[j], int(rot_sgn*r[j])) for j in range(len(scramblers_))]
+
+        # apply scrambler
+        for s in S:
+            x = s[x]
+
+        # apply reflector
+        x = reflector[x]
+
+        # apply inverse scramblers
+        for s in S[::-1]:
+            x = get_inv_map(s)[x]
+
+        # apply swapper
+        if swapper is not None:
+            x = swapper[x]
+        return x
+
+    return enigma
+
+
+class Disc:
     def __init__(self, input: str, output: str):
         if len(input) != len(output):
             raise Exception("Input and output lengths do not match.")
@@ -51,8 +101,8 @@ class Scrambler:
         print(f"{input}\n{output}")
 
 
-class Scramblers:
-    def __init__(self, *scramblers: Scrambler, init_key: str=None, input: str=ALPHABET, output: str=ALPHABET):
+class Discs:
+    def __init__(self, *scramblers: Disc, init_key: str=None, input: str=ALPHABET, output: str=ALPHABET):
         self.input, self.output = input, output
         self.scramblers = scramblers
 
