@@ -38,12 +38,12 @@ for i, c in enumerate(cipher):
     x = P[c]
 
     # get rotated scramblers
-    r1 = i + 1
-    r2 = r1 // len(ALPHABET)
-    r3 = r2 // len(ALPHABET)
+    r1 = i + 1 + I[0]
+    r2 = r1 // len(ALPHABET) + I[1]
+    r3 = r2 // len(ALPHABET) + I[2]
     r = [r1, r2, r3]
 
-    S_ = [rotate_scrambler(S[j], int(rot_sgn*(r[j] + I[j]))) for j in range(len(S))]
+    S_ = [rotate_scrambler(S[j], int(rot_sgn*r[j])) for j in range(len(S))]
 
     # apply scrambler
     for s in S_:

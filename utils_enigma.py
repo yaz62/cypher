@@ -46,9 +46,8 @@ def build_enigma_func(scramblers, reflector, swapper=None, init_key=None, rot_sg
     if init_key is not None:
         # initial keys
         I = [ALPHABET.index(k) for k in init_key]
-        scramblers_ = [rotate_scrambler(scramblers[j], int(rot_sgn*I[j])) for j in range(len(scramblers))]
     else:
-        scramblers_ = scramblers
+        I = [0] * len(init_key)
 
     def enigma(c, i):
         # apply swapper
@@ -56,11 +55,11 @@ def build_enigma_func(scramblers, reflector, swapper=None, init_key=None, rot_sg
             x = swapper[c]
 
         # get rotated scramblers
-        r = [i + 1]
-        for j in range(1, len(scramblers_)):
-            r.append(r[j-1] // len(alphabet))
+        r = [i + 1 + I[0]]
+        for j in range(1, len(scramblers)):
+            r.append(r[j-1] // len(alphabet) + I[j])
 
-        S = [rotate_scrambler(scramblers_[j], int(rot_sgn*r[j])) for j in range(len(scramblers_))]
+        S = [rotate_scrambler(scramblers[j], int(rot_sgn*r[j])) for j in range(len(scramblers))]
 
         # apply scrambler
         for s in S:
@@ -82,11 +81,12 @@ def build_enigma_func(scramblers, reflector, swapper=None, init_key=None, rot_sg
 
 
 class Disc:
-    def __init__(self, input: str, output: str):
+    def __init__(self, input: str, output: str, notch_letter='Z'):
         if len(input) != len(output):
             raise Exception("Input and output lengths do not match.")
         self.input = input
         self.output = output
+        self.notch_letter = notch_letter
 
     def rotate(self, n: int, in_place=False):
         input, output = rotate_string(self.input, n), rotate_string(self.output, n)
@@ -96,9 +96,16 @@ class Disc:
         else:
             return input, output
         
+    def get_notch_rotations(self, n: int=0):
+        input = rotate_string(self.input, n) if n != 0 else self.input
+        return input.index(self.notch_letter)
+        
     def print(self, n: int=0):
         input, output = self.rotate(n)
         print(f"{input}\n{output}")
+
+    def __len__(self):
+        return len(self.input)
 
 
 class Discs:
@@ -115,6 +122,15 @@ class Discs:
                 scramblers[i].rotate(-r, in_place=True)
 
     def get_mappings(self, rot_nums):
+        # autogenerate rotation numbers for each scrambler,
+        # if `rot_nums` is the rotation number of the first scrambler
+        if type(rot_nums) == int:
+            notch_pos = [s.get_notch_rotations(0) for s in self.scramblers]
+            rot_nums = [rot_nums]
+            for j in range(1, len(self.scramblers)):
+                r = rot_nums[j-1] - notch_pos[j-1]      # correct for initial positions
+                rot_nums.append(r // len(self.scramblers[j]) + 1)
+
         # get rotated inputs and outputs
         inputs, outputs = [], []
         for i, s in enumerate(self.scramblers):
@@ -122,12 +138,15 @@ class Discs:
             inputs.append(inp)
             outputs.append(out)
 
+        # input to first disc mapping
         S = []
         S.append({k: v for k, v in zip(self.input, inputs[0])})
 
+        # inter-disc mapping
         for i in range(1, len(inputs)):
             S.append({k: v for k, v in zip(outputs[i-1], inputs[i])})
 
+        # last disc to output mapping
         S.append({k: v for k, v in zip(outputs[-1], self.output)})
 
         return S, [get_inv_map(s) for s in S]
