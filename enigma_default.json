@@ -1,0 +1,10 @@
+{
+    "swap": ["AB", "SZ", "UY", "GH", "LQ", "EN"], 
+    "scramble": [
+                    "AJPCZWRLFBDKOTYUQGENHXMIVS", 
+                    "UWYGADFPVZBECKMTHXSLRINQOJ", 
+                    "TAGBPCSDQEUFVNZHYIXJWLRKOM"
+                ],
+    "reflect": "YRUHQSLDPXNGOKMIEBFZCWVJAT",
+    "init_key": "AEB"
+}
