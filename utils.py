@@ -76,6 +76,13 @@ def replchar(ciphertext: str, mapdict: dict, **kwargs):
     return replace_char(ciphertext, mapdict, **kwargs)
 
 
+def is_symmetric(map_dict: dict):
+    for k, v in map_dict.items():
+        if k != map_dict[v]:
+            return False
+    return True
+
+
 def vigenere_decrypt(ciphertext: str, key: str, offset=1) -> str:
     plaintext = []
     key = key.upper()
