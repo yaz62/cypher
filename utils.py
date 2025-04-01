@@ -83,6 +83,17 @@ def is_symmetric(map_dict: dict):
     return True
 
 
+def check_mapping_completeness(map_dict: dict, alphabet: str):
+    assert len(map_dict.keys()) == len(alphabet)
+    assert len(map_dict.values()) == len(alphabet)
+    
+    for l in alphabet:
+        if l not in map_dict.keys():
+            raise Exception(f"Letter {l} is not found in the keys of map_dict.")
+        if l not in map_dict.values():
+            raise Exception(f"Letter {l} is not found in the values of map_dict.")
+        
+
 def vigenere_decrypt(ciphertext: str, key: str, offset=1) -> str:
     plaintext = []
     key = key.upper()

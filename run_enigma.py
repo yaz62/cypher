@@ -1,12 +1,12 @@
 import argparse
 import json
 import os
-from utils import ALPHABET, is_symmetric
+from utils import ALPHABET, is_symmetric, check_mapping_completeness
 from utils_enigma import build_enigma_func
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("input", type=str, help="Input file name")
+parser.add_argument("input", type=str, help="Input text or file name containing the text")
 parser.add_argument("-c", "--config", type=str, help="Enigma machine configuration file")
 parser.add_argument("-o", "--outfile", type=str, help="Output file name")
 
@@ -47,14 +47,19 @@ for a in alphabet:
     if a not in P.keys():
         P[a] = a
 
-# check if swapper is symmetric
+# check if swapper is valid
 if not is_symmetric(P):
     raise Exception(f"Swapper must be symmetric.")
+check_mapping_completeness(P, alphabet)
 
 # build scramblers
 S = []
 for scramble in cfg_dict["scramble"]:
     S.append({k: v for k, v in zip(scramble, alphabet)})
+
+# check if scramblers are valid
+for s in S:
+    check_mapping_completeness(s, alphabet)
 
 # build reflector
 if type(cfg_dict["reflect"]) == str:
@@ -71,6 +76,7 @@ else:
 # check if reflector is symmetric
 if not is_symmetric(R):
     raise Exception(f"Reflector must be symmetric.")
+check_mapping_completeness(R, alphabet)
 
 if "init_key" in cfg_dict.keys():
     init_key = cfg_dict['init_key']
